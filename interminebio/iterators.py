@@ -114,6 +114,9 @@ class FastaIterator(object):
 
     def next(self):
         lines = []
+        if self.it is None:
+            raise StopIteration
+
         if self._holdover is not None:
             lines.append(self._holdover)
             self._holdover = None
@@ -121,17 +124,17 @@ class FastaIterator(object):
             try:
                 lines.append(self.it.next())
             except StopIteration:
-                pass
+                self.it = None
 
-        try: 
-            while True:
+        try:
+            while self.it is not None:
                 line = self.it.next()
                 if line.startswith(">"):
                     self._holdover = line
                     break
                 lines.append(line)
         except StopIteration:
-            pass
+            self.it = None
 
         if len(lines):
             return "\n".join(lines)

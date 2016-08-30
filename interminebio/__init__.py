@@ -9,12 +9,17 @@ except ImportError:
         raise "No JSON module found - please install simplejson"
 
 class SequenceDataQuery(object):
+
+    def to_query(self):
+        """Fulfil the listable query interface"""
+        return self
+
     def bed(self, ucsc_compatible=True):
         """
         Get results as BED
         ==================
 
-        Return a BedIterator object, which stringifies to the BED results, 
+        Return a BedIterator object, which stringifies to the BED results,
         and works as an iterator over the lines. After iteration the header
         information is accessible with the iter.header() method
         """
@@ -25,7 +30,7 @@ class SequenceDataQuery(object):
         Get results as FASTA
         ====================
 
-        Return a FastaIterator object, which stringifies to the Fasta results, 
+        Return a FastaIterator object, which stringifies to the Fasta results,
         and works as an iterator over the records (not the lines).
 
         When attempting to get results as FASTA the query may only have a single
@@ -38,19 +43,22 @@ class SequenceDataQuery(object):
         Get results as GFF3
         ===================
 
-        Return a GFF3Iterator object, which stringifies to the GFF3 results, 
+        Return a GFF3Iterator object, which stringifies to the GFF3 results,
         and works as an iterator over the lines. After iteration the header
         information is accessible with the iter.header() method
         """
         return GFF3Iterator(self.service, self.query)
 
+class _FakeRoot(object):
+    @property
+    def name(self): return "fake-root"
 
 class RegionQuery(SequenceDataQuery):
     """
     Class for querying InterMine Webservices for Features in Genomic Intervals
     ==========================================================================
 
-    This module allows you to construct queries that retrieve data about sequences and 
+    This module allows you to construct queries that retrieve data about sequences and
     sequence features in biologically relevant formats, where those features are located
     overlapping genomic intervals.
 
@@ -70,7 +78,7 @@ class RegionQuery(SequenceDataQuery):
         """
         Constructor
         ===========
-         
+
           >>> s = Service("www.flymine.org/query", "API-KEY")
           >>> org = "D. melanogaster"
           >>> regions = ["2L:14614843..14619614"]
@@ -107,11 +115,15 @@ class RegionQuery(SequenceDataQuery):
         self.fasta_path = RegionQuery.FASTA_PATH
         self.gff3_path = RegionQuery.GFF3_PATH
         self.views = []
+        self.root = _FakeRoot()
+
+    def add_view(self, *args):
+        pass
 
     def _get_region_query(self):
         return {
-            "organism": self.organism, 
-            "featureTypes": list(self.feature_types), 
+            "organism": self.organism,
+            "featureTypes": list(self.feature_types),
             "regions": list(self.regions),
             "extension": self.extension,
             "isInterbase": self.is_interbase
@@ -142,14 +154,14 @@ class RegionQuery(SequenceDataQuery):
     @property
     def query(self):
         return self
-        
+
 
 class SequenceQuery(SequenceDataQuery):
     """
     Class for querying InterMine Webservices for Sequence based data
     ================================================================
 
-    This module allows you to construct queries that retrieve data about sequences and 
+    This module allows you to construct queries that retrieve data about sequences and
     sequence features in biologically relevant formats.
 
     The currently supported formats are UCSC-BED, GFF3, and FASTA.
@@ -160,7 +172,7 @@ class SequenceQuery(SequenceDataQuery):
         """
         Constructor
         ===========
-         
+
           >>> s = Service("www.flymine.org/query")
           >>> bio_query = SequenceQuery(s, "Gene")
           <interminebio.SequenceQuery xxx>
@@ -200,9 +212,9 @@ class SequenceQuery(SequenceDataQuery):
         Add an arbitrarily long list of sequence features to the query.
         ===============================================================
 
-        Fasta, GFF3 and BED queries all can read information from SequenceFeatures. 
-        For Fasta you are advised to use the set_sequence method instead, 
-        as unlike the GFF3 and BED services, the Fasta service can only handle 
+        Fasta, GFF3 and BED queries all can read information from SequenceFeatures.
+        For Fasta you are advised to use the set_sequence method instead,
+        as unlike the GFF3 and BED services, the Fasta service can only handle
         queries with one output column.
         """
         for f in features:
@@ -228,7 +240,7 @@ class SequenceQuery(SequenceDataQuery):
         Add a sequence holding object to the query. It can be a SequenceFeature, Protein
         or Sequence object.
 
-        Fasta queries, which read sequences rather than sequence features, 
+        Fasta queries, which read sequences rather than sequence features,
         currently only permit one output column.
         """
         self.query.views = []
