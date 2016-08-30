@@ -49,5 +49,4 @@ Support is available on our development mailing list: dev@intermine.org
 
 == License
 
-This code is Open Source under the LGPL. Source code for all InterMine code
-can be checked out from svn://subversion.flymine.org/flymine
+All code in this project is dual licensed under the LGPL version 3 license and the BSD 2-clause license
